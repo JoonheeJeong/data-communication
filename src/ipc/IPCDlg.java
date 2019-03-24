@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -11,6 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -173,6 +175,8 @@ public class IPCDlg extends JFrame implements BaseLayer {
 					srcAddress.setText("");
 					dstAddress.setText("");
 					Setting_Button.setText("Setting");
+					srcAddress.setEditable(true);
+					dstAddress.setEditable(true);
 				} else {
 					String Ssrc = srcAddress.getText();
 					String Sdst = dstAddress.getText();
@@ -200,11 +204,9 @@ public class IPCDlg extends JFrame implements BaseLayer {
 		}
 	}
 
-	public boolean Receive(byte[] input) {	
-/*
- * 	과제 채팅 화면에 채팅 보여주기
- * 
- */
+	public boolean Receive(byte[] input) {
+		String str = new String(input, StandardCharsets.UTF_8);
+		ChattingArea.append("[RECV]:" + str + "\n");
 		return true;
 	}
 
