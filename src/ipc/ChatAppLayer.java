@@ -63,13 +63,9 @@ public class ChatAppLayer implements BaseLayer {
 	}
 
 	public byte[] RemoveCappHeader(byte[] input, int length) {
-		
-	/*
-	 * 과제
-	 * 
-	 * 
-	 * */	
-		return input;// 변경하세요 필요하시면
+		byte[] data = new byte[length-10];
+		System.arraycopy(input, 10, data, 0, length-10);
+		return data;
 	}
 
 	public synchronized boolean Receive(byte[] input) {
