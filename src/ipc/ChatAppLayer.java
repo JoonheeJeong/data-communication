@@ -39,14 +39,14 @@ public class ChatAppLayer implements BaseLayer {
 		byte[] srctemp = intToByte4(Header.capp_src);
 		byte[] dsttemp = intToByte4(Header.capp_dst);
 
-		buf[0] = srctemp[0];
-		buf[1] = srctemp[1];
-		buf[2] = srctemp[2];
-		buf[3] = srctemp[3];
-		buf[4] = dsttemp[0];
-		buf[5] = dsttemp[1];
-		buf[6] = dsttemp[2];
-		buf[7] = dsttemp[3];
+		buf[0] = dsttemp[0];
+		buf[1] = dsttemp[1];
+		buf[2] = dsttemp[2];
+		buf[3] = dsttemp[3];
+		buf[4] = srctemp[0];
+		buf[5] = srctemp[1];
+		buf[6] = srctemp[2];
+		buf[7] = srctemp[3];
 		buf[8] = (byte) (length % 256);
 		buf[9] = (byte) (length / 256);
 
