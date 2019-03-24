@@ -199,7 +199,15 @@ public class IPCDlg extends JFrame implements BaseLayer {
 			}
 			
 			if (e.getSource() == Chat_send_Button) {
-				
+				if (Setting_Button.getText() != "Reset") {
+					JOptionPane.showMessageDialog(null, "Port Address Setting Error.\n");
+					return;
+				}
+				String sendingText = ChattingWrite.getText();
+				ChattingWrite.setText("");
+				ChattingArea.append("[SEND]:" + sendingText + "\n");
+				byte[] data = sendingText.getBytes();
+				GetUnderLayer().Send(data, data.length);
 			}
 		}
 	}
