@@ -57,10 +57,8 @@ public class ChatAppLayer implements BaseLayer {
 	}
 
 	public boolean Send(byte[] input, int length) {
-		/*
-		 * 과제
-		 * 
-		 */
+		byte[] data = ObjToByte(m_sHeader, input, length);
+		GetUnderLayer().Send(data, length+10);
 		return true;
 	}
 
