@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -21,6 +20,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
+@SuppressWarnings("serial")
 public class IPCDlg extends JFrame implements BaseLayer {
 
 	public int nUpperLayerCount = 0;
@@ -213,8 +213,19 @@ public class IPCDlg extends JFrame implements BaseLayer {
 	}
 
 	public boolean Receive(byte[] input) {
-		String str = new String(input, StandardCharsets.UTF_8);
-		ChattingArea.append("[RECV]:" + str + "\n");
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < input.length; i++) {
+			if (input[i] < 0) { // 한글이면 3바이트
+				byte[] temp = new byte[3];
+				temp[0] = input[i];
+				temp[1] = input[++i];
+				temp[2] = input[++i];
+				buf.append( new String(temp) );
+			} else { // 기타 영문, 문자, 기호이면 1바이트
+				buf.append( (char)input[i] );
+			}
+		}
+		ChattingArea.append("[RECV]:" + buf + "\n");
 		return true;
 	}
 
