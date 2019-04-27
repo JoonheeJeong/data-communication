@@ -11,6 +11,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -19,6 +20,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
+@SuppressWarnings("serial")
 public class IPCDlg extends JFrame implements BaseLayer {
 
 	public int nUpperLayerCount = 0;
@@ -52,18 +54,10 @@ public class IPCDlg extends JFrame implements BaseLayer {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		m_LayerMgr.AddLayer(new SocketLayer("Socket"));
-		/*
-		 과제 빈칸 채우기
-		 ChatApp LayerManager에 추가
-		 
-		 */
+		m_LayerMgr.AddLayer(new ChatAppLayer("Chat"));
 		m_LayerMgr.AddLayer(new IPCDlg("GUI"));
-
-		/*
-		 과제 ChatApp 연결하기 아래부분 수정
-		 
-		 */
-		m_LayerMgr.ConnectLayers(" Socket ( *GUI ) ");
+		
+		m_LayerMgr.ConnectLayers(" Socket ( *Chat ( *GUI ) ) ");
 	}
 
 	public IPCDlg(String pName) {
@@ -156,22 +150,82 @@ public class IPCDlg extends JFrame implements BaseLayer {
 
 	class setAddressListener implements ActionListener {
 		@Override
+		/*
+		 * Setting Button이 눌렸을 때의 동작 처리
+		 * 1. SrcAddress의 text를 ChatAppLayer header에 저장
+		 * 2. DstAddress의 text를 ChatAppLayer header에 저장
+		 * 3. SrcAddress의 text를 SocketLayer Server port에 저장
+		 * 4. DstAddress의 text를 SocketLayer Client port에 저장
+		 * 5. SocketLayer의 서버를 실행시킴(SocketLayer Thread 동작)
+		 * 6. “Setting” Button을 “Reset” Button으로 변경
+		 * 7. SrcAddress, DstAddress의 값 변경 못하게 설정
+		 * 8. “Reset” Button을 누를 시 SrcAddress, DstAddress의text를 공백으로 변경
+		 * 9. “Reset” Button - > “Setting” Button
+		 * 
+		 * Send Button이 눌렸을 때의 농작 처리
+		 * 1. Setting Button이 “Reset”인지 확인
+		 * 2. ChattingWrite에 적은 Text를 ChattingArea에 보여준다.
+		 * 3. ChatAppLayer에 Send()호출해서 String을 Byte형식으로변경해서 보낸다.
+		 * 4. 주소 값이 없으면 “주소 설정 오류” MessageDialog를띄운다.
+		 * */
 		public void actionPerformed(ActionEvent e) {
-			/*
-			 * 
-			 * 과제 Setting 버튼과 Send 버튼을 누를 시 행동
-			 * 
-			 * Setting 버튼 누를 시 SocketLayer에서 포트 설정
-			 * 
-			 */
+			if (e.getSource() == Setting_Button) {
+				
+				if (Setting_Button.getText() == "Reset") {
+					srcAddress.setText("");
+					dstAddress.setText("");
+					Setting_Button.setText("Setting");
+					srcAddress.setEditable(true);
+					dstAddress.setEditable(true);
+				} else {
+					String Ssrc = srcAddress.getText();
+					String Sdst = dstAddress.getText();
+					
+					int src = Integer.parseInt(Ssrc);
+					int dst = Integer.parseInt(Sdst);
+					
+					((SocketLayer) m_LayerMgr.GetLayer("Socket")).setServerPort(src);
+					((SocketLayer) m_LayerMgr.GetLayer("Socket")).setClientPort(dst);
+					
+					((ChatAppLayer) m_LayerMgr.GetLayer("Chat")).SetEnetSrcAddress(src);
+					((ChatAppLayer) m_LayerMgr.GetLayer("Chat")).SetEnetDstAddress(dst);
+					((SocketLayer) m_LayerMgr.GetLayer("Socket")).Receive();
+					
+					Setting_Button.setText("Reset");
+					srcAddress.setEditable(false);
+					dstAddress.setEditable(false);
+				}
+				
+			}
+			
+			if (e.getSource() == Chat_send_Button) {
+				if (Setting_Button.getText() != "Reset") {
+					JOptionPane.showMessageDialog(null, "Port Address Setting Error.\n");
+					return;
+				}
+				String sendingText = ChattingWrite.getText();
+				ChattingWrite.setText("");
+				ChattingArea.append("[SEND]:" + sendingText + "\n");
+				byte[] data = sendingText.getBytes();
+				GetUnderLayer().Send(data, data.length);
+			}
 		}
 	}
 
-	public boolean Receive(byte[] input) {	
-/*
- * 	과제 채팅 화면에 채팅 보여주기
- * 
- */
+	public boolean Receive(byte[] input) {
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < input.length; i++) {
+			if (input[i] < 0) { // 한글이면 3바이트
+				byte[] temp = new byte[3];
+				temp[0] = input[i];
+				temp[1] = input[++i];
+				temp[2] = input[++i];
+				buf.append( new String(temp) );
+			} else { // 기타 영문, 문자, 기호이면 1바이트
+				buf.append( (char)input[i] );
+			}
+		}
+		ChattingArea.append("[RECV]:" + buf + "\n");
 		return true;
 	}
 
